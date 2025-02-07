@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UPI Payment</title>
+</head>
+<body>
+  <h1>Scan or Click to Pay via UPI</h1>
+  <p>1. Use any UPI-supported app to scan the QR code below.</p>
+  <p>2. Or click the button below to pay ₹1 directly.</p>
+
+  <!-- QR Code Display -->
+  <img src="https://i.imghippo.com/files/EoC6157Qc.jpg" alt="UPI Payment QR Code" style="width: 300px; height: 300px;">
+
+  <br><br>
+
+  <!-- Pay Button -->
+  <a href="upi://pay?pa=riyana@paytm&pn=Riyana&am=1&cu=INR&tn=TestPayment" style="text-decoration: none;">
+    <button style="padding: 10px 20px; font-size: 16px;">Pay ₹1 Now</button>
+  </a>
+
+  <br><br>
+
+  <!-- Scanner Button -->
+  <button id="scan" style="padding: 10px 20px; font-size: 16px;">Scan QR Code</button>
+
+  <script>
+    // Handle QR scanning using device camera
+    document.getElementById('scan').onclick = function () {
+      if ('BarcodeDetector' in window) {
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+          .then(stream => {
+            const video = document.createElement('video');
+            document.body.appendChild(video);
+            video.srcObject = stream;
+            video.play();
+
+            const barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+
+            const scanFrame = () => {
+              barcodeDetector.detect(video)
+                .then(barcodes => {
+                  barcodes.forEach(barcode => {
+                    if (barcode.rawValue.startsWith("upi://")) {
+                      stream.getTracks().forEach(track => track.stop());
+                      window.location.href = barcode.rawValue;
+                    }
+                  });
+                })
+                .catch(err => console.error(err));
+
+              requestAnimationFrame(scanFrame);
+            };
+            scanFrame();
+          })
+          .catch(err => alert('Camera access denied!'));
+      } else {
+        alert('QR Code scanning is not supported on this browser.');
+      }
+    };
+  </script>
+
+  <p>Thank you for your payment!</p>
+</body>
+</html>
